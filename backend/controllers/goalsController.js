@@ -34,20 +34,25 @@ exports.setGoal=asyncHandler(async(req,res)=>{
 //@access Private
 exports.updateGoal=asyncHandler(async(req,res)=>{
     const{id}=req.params
+    console.log(id)
     const{text}=req.body
+    console.log(text)
     try {
-        const user=await User.findOne({id:req.user.id})
-        if(!user){
+
+        if(!req.user){
             res.status(400)
             throw new Error('User not found')
         }
       
         const goal=await Goal.findByIdAndUpdate(id,{text:text},{new:true})
-        if(goal.user.toString()!==user.id){
-            res.status(400)
-            throw new Error('NOt Authorized')
+        if(goal && goal.user.toString()===req.user._id.toString()){
+            res.status(200).json(goal)
         }
-        res.status(200).json(goal)
+        else if(goal  && goal.user.toString()!==req.user._id.toString()){
+            res.status(400)
+            throw new Error('Not Authorized')
+        }
+        
     } catch (error) {
         res.status(400)
         throw new Error('pleas add a text field')
@@ -61,25 +66,29 @@ exports.updateGoal=asyncHandler(async(req,res)=>{
 //@access Private
 exports.deleteGoal=asyncHandler(async(req,res)=>{
     const{id}=req.params
-    const user=await User.findById(req.user.id)
+    console.log('user',req.user)
+    console.log('id',id)
 
-        if(!user){
-            res.status(400)
-            throw new Error('User not found')
-        }
-        const goal=await Goal.findById(id)
+    const goal=await Goal.findById(id)
+ 
+    
+    console.log(goal)
+    if(goal && goal.user.toString()===req.user._id.toString()){
+        await goal.remove()
+        res.status(200).json({message: 'deleted'})
+    }else if(goal && goal.user.toString()!==req.user._id.toString()){
+        res.status(400)
+        throw new Error('Not Authorized')
+    }else if (!goal){
+        res.status(400)
+        throw new Error('goal was not found')
+    }
 
-        if(goal.user.toString()!==user.id){
-            res.status(400)
-            throw new Error('NOt Authorized')
-        }
-        if (goal) {
-            goal.remove()
-            res.status(200).json({message: 'deleted'})
-        } else {
-            res.status(400)
-            throw new Error('pleas add a text field')
-        }
+
+
+
+   
+
        
     
       

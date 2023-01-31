@@ -1,32 +1,75 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Loader from '../../components/Loader'
 import {FaSignInAlt } from 'react-icons/fa'
-import { Button,Form, Input,notification,Space, Table, Tag } from 'antd';
+import { Button,Form, Input,Space, Table,Modal } from 'antd';
 import { useCreateGoalMutation, useDeleteGoalMutation, useGetGoalsQuery, useUpdateGoalMutation } from './goalsApiSlice';
-import { useLoginMutation } from '../auth/authApiSlice';
-
+import { toast } from 'react-toastify';
+import { ExclamationCircleFilled } from '@ant-design/icons';
+import { useModalForm } from 'sunflower-antd';
+const { confirm } = Modal;
 const GoalsScreen = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+   const handleOk = () => {
+    setIsModalOpen(false);
+  };
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
     const [createGoal,{isLoading:createLoading}]=useCreateGoalMutation()
     const [updateGoal,{isLoading:UpdateLoading}]=useUpdateGoalMutation()
     const [deleteGoal,{isLoading:deleteLoading}]=useDeleteGoalMutation()
     const {data: goals,isFetching,isSuccess,isError,error}=useGetGoalsQuery()
-    const [api, contextHolder] = notification.useNotification();
+    const [form] = Form.useForm();
+    const showModal = () => {
+      setIsModalOpen(true);
+    };
+    
+    const showPromiseConfirm = (goal) => {
+      confirm({
+        title: 'Do you want to delete these Goal?',
+        icon: <ExclamationCircleFilled />,
+        confirmLoading:deleteLoading,
+        onOk: async () => {
+          try {
+            const deletedGoal=await deleteGoal(goal).unwrap()
+            console.log(deletedGoal)
+            toast.success("Deleted goal successfully!", {
+              position: toast.POSITION.BOTTOM_RIGHT,
+              theme: "dark"
+            });
+          } catch (error) {
+            console.log(error)
+            toast.error(`${error.data.message}`, {
+              position: toast.POSITION.BOTTOM_RIGHT,
+              theme: "dark"
+            });
+          }
+         
+        },
+        onCancel() {},
+      });
+    };
+const onFinishEdit=async (goal_id)=>{
 
-    const openNotification = (message,type) => {
-        if( type==='error'){
-          return api.error({
-            message: `${message}`,
-            placement:'top',
-          })
-        } else if(type==='success'){
-          return  api.success({
-            message: `${message}`,
-            placement:'top',
-          })
-        }
-       
-        
-      };
+  const values={...form.getFieldsValue(),id:goal_id}
+  try {
+    await updateGoal(values).unwrap()
+    toast.success("successfully updated a goal !", {
+      position: toast.POSITION.BOTTOM_RIGHT,
+      theme: "dark"
+    });
+
+
+} catch (error) {
+  toast.error(`${error.data.message}`, {
+    position: toast.POSITION.BOTTOM_RIGHT,
+    theme: "dark"
+  });
+}
+
+  handleOk()
+}
+
     const columns = [
         {
           title: 'Goal',
@@ -40,42 +83,64 @@ const GoalsScreen = () => {
           key: 'action',
           render: (_, record) => (
             <Space size="middle">
-              <a onClick={handelEdit}>Edit</a>
-              <a  onClick={handelDelete}>Delete</a>
+
+
+
+              <div>
+                  <Modal onOk={form.submit} onCancel={handleCancel} open={isModalOpen}  title="useModalForm" okText="submit" width={600}  confirmLoading={UpdateLoading}>
+                  
+                      <Form form={form} onFinish={()=>onFinishEdit(record.goal_id)} layout="inline" >
+                        <Form.Item label="Goal" name="text">
+                          <Input  />
+                        </Form.Item>
+                      </Form>
+                  </Modal>
+                  <Button onClick={showModal}>Edit</Button>
+                </div>
+
+
+
+
+              <Space wrap>
+                  <Button onClick={()=>showPromiseConfirm(record.goal_id)}>Delete</Button>
+              </Space>
             </Space>
           ),
         },
       ];
-    const handelDelete=(id)=>{
-        console.log(id)
-    }
-    const handelEdit=(id)=>{
-        console.log(id)
-    }
+ 
+
 
       const data = goals && goals.map((goal,index)=>(
         {
             key: `${index}`,
             goal: goal.text,
+            goal_id:goal._id
         }
       ))
 
     const onFinish = async(values) => {
+
         try {
-            await createGoal(values)
-            openNotification(' Goal successfully add','success')
+            await createGoal(values).unwrap()
+            toast.success("successfully added a goal !", {
+              position: toast.POSITION.BOTTOM_RIGHT,
+              theme: "dark"
+            });
+            // form.setFieldsValue({text:''})
+
 
         } catch (error) {
-            openNotification(error.data.message,'error')
+          toast.error(`${error.data.message}`, {
+            position: toast.POSITION.BOTTOM_RIGHT,
+            theme: "dark"
+          });
         }
         
          
         };
     let content
-    if(isFetching){
-      content=<Loader/>
-    } 
-    else{
+
       content=
       <section className='heading'>
       <h1>
@@ -108,7 +173,7 @@ const GoalsScreen = () => {
                       span: 25,
                     }}
                   >
-                <Button block type="primary" htmlType="submit">
+                <Button  loading={createLoading} block type="primary" htmlType="submit">
                   Add Goal
                 </Button>
               </Form.Item>
@@ -118,10 +183,9 @@ const GoalsScreen = () => {
       )}
       
     </section>
-    }
+    
   return (
     <>   
-     {contextHolder}
      {content}
      </>
 
@@ -143,4 +207,12 @@ export default GoalsScreen
 
 
 
+
+
+
+
+
+
+
+    
 

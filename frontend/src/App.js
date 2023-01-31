@@ -6,10 +6,17 @@ import RequireAuth from './features/auth/RequireAuth'
 import Welcome from './features/Welcome'
 import Nav from './components/Nav'
 import GoalsScreen from './features/goals/GoalsScreen'
+import { ToastContainer } from 'react-toastify';
+
 const App = () => {
+
   return (
     <div className='container'>
+     
       <Nav/>
+
+      
+    <ToastContainer />
     <Routes>
           <Route path='/' element={<Layout/>} exact>
             {/* Public Routes */}

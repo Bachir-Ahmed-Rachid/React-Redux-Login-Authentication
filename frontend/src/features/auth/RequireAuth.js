@@ -6,9 +6,7 @@ import { selectCurrentToken } from './authSlice'
 const RequireAuth = () => {
     const location =useLocation()
     const token=useSelector(selectCurrentToken)
-    useEffect(() => {
-
-    }, [token])
+    useEffect(() =>{},[token])
     
   return (
     token?(<Outlet/>):(

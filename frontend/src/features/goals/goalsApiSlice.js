@@ -18,7 +18,7 @@ export const goalsApiSlice=apiSlice.injectEndpoints({
 
         updateGoal: build.mutation({
             query:(text)=>({
-                url:'/:id',
+                url:`/goals/${text.id}`,
                 method:'PUT',
                 body:text
             }),
@@ -26,10 +26,9 @@ export const goalsApiSlice=apiSlice.injectEndpoints({
         }),
 
         deleteGoal: build.mutation({
-            query:(text)=>({
-                url:'/:id',
+            query:(id)=>({
+                url:`/goals/${id}`,
                 method:'DELETE',
-                body:text
             }),
             invalidatesTags: ['Goal'],
         }),
