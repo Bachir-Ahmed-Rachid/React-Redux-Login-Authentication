@@ -5,7 +5,6 @@ import { Button,Form, Input,Space, Table,Modal } from 'antd';
 import { useCreateGoalMutation, useDeleteGoalMutation, useGetGoalsQuery, useUpdateGoalMutation } from './goalsApiSlice';
 import { toast } from 'react-toastify';
 import { ExclamationCircleFilled } from '@ant-design/icons';
-import { useModalForm } from 'sunflower-antd';
 const { confirm } = Modal;
 const GoalsScreen = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -83,9 +82,6 @@ const onFinishEdit=async (goal_id)=>{
           key: 'action',
           render: (_, record) => (
             <Space size="middle">
-
-
-
               <div>
                   <Modal onOk={form.submit} onCancel={handleCancel} open={isModalOpen}  title="useModalForm" okText="submit" width={600}  confirmLoading={UpdateLoading}>
                   
@@ -97,9 +93,6 @@ const onFinishEdit=async (goal_id)=>{
                   </Modal>
                   <Button onClick={showModal}>Edit</Button>
                 </div>
-
-
-
 
               <Space wrap>
                   <Button onClick={()=>showPromiseConfirm(record.goal_id)}>Delete</Button>
